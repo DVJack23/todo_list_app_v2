@@ -3,13 +3,23 @@ const prompt = require('prompt-sync')();
 const Task = require('./task.js');
 
 class List {
-    constructor(tasks = []) {
+    constructor(tasks = [],ids = [], idCounter = 0, highestId = 1) {
         this.tasks = tasks;
+        this.ids = ids;
+        this.idCounter = idCounter;
+        this.highestId = highestId;
     }
 
     addTask() {
         console.log(`ADD NEW TASK`);
-        let id = (this.tasks.length + 1);
+        let id = 0;
+        if (this.ids.length === 0) {
+            id = this.highestId;
+            this.highestId ++;
+        } else {
+            id = this.ids[0];
+        }
+        this.idCounter ++;
         let title = prompt(`Title: `);
         let description = prompt(`Description: `);
         let completed = false;
@@ -26,11 +36,21 @@ class List {
         }
 
         let deleteOption = parseInt(prompt(`Select task ID: `));
-        while (isNaN(deleteOption) || deleteOption < 1 || deleteOption > this.tasks.length) {
-            deleteOption = parseInt(prompt(`Select options [1] to [${this.tasks.length}]: `));
+        while (isNaN(deleteOption) || deleteOption < 1 || deleteOption > this.idCounter) {
+            deleteOption = parseInt(prompt(`Select options [1] to [${this.idCounter}]: `));
         }
 
-        this.tasks.splice(deleteOption - 1, 1);
+        let index = 1
+        for (let task of this.tasks) {
+            if (task.id !== deleteOption) {
+                index ++;
+            }
+            if (task.id === deleteOption) {
+                this.ids.push(task.id);
+                this.tasks.splice(index - 1, 1);
+                this.idCounter --;
+            }
+        }
         console.log();
     }
 
@@ -41,11 +61,15 @@ class List {
         }
 
         let markOption = parseInt(prompt(`Select task ID: `));
-        while (isNaN(markOption) || markOption < 1 || markOption > this.tasks.length) {
-            markOption = parseInt(prompt(`Select options [1] to [${this.tasks.length}]: `));
+        while (isNaN(markOption) || markOption < 1 || markOption > this.idCounter) {
+            markOption = parseInt(prompt(`Select options [1] to [${this.idCounter}]: `));
         }
 
-        this.tasks[markOption - 1].completed = true;
+        for (let task of this.tasks) {
+            if (task.id === markOption) {
+                task.completed = true;
+            }
+        }
         console.log();
     }
 

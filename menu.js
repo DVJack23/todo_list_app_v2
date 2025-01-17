@@ -1,3 +1,4 @@
+// MENU
 const prompt = require('prompt-sync')();
 
 function menu(myTasks) {
