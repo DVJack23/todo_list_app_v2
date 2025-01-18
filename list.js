@@ -5,10 +5,10 @@ const { compareAsc, isValid, parseISO } = require('date-fns');
 const Table = require('cli-table3');
 
 class List {
-    constructor(tasks = [],ids = [], idCounter = 0, highestId = 1) {
+    constructor(tasks = [],ids = [], idCounter = [], highestId = 1) {
         this.tasks = tasks;
         this.ids = ids;
-        this.idCounter = idCounter;
+        this.idCounter = idCounter;  // List of ids in use
         this.highestId = highestId;
         this.filter = 0;
     }
@@ -24,7 +24,8 @@ class List {
             id = this.ids[0];
             this.ids.splice(0,1);
         }
-        this.idCounter ++;
+        this.idCounter.push(id);
+
         let title = prompt(`Title: `);
         let dueDate;
         while(true) {
@@ -48,8 +49,8 @@ class List {
     deleteTask() {
         this.showAll(`DELETE TASK`);
         let deleteOption = parseInt(prompt(`Select task ID: `));
-        while (isNaN(deleteOption) || deleteOption < 1 || deleteOption > this.idCounter) {
-            deleteOption = parseInt(prompt(`Select options [1] to [${this.idCounter}]: `));
+        while (isNaN(deleteOption) || !(this.idCounter.includes(deleteOption))) {
+            deleteOption = parseInt(prompt(`Select Task ID [x]: `));
         }
 
         let index = 1
@@ -60,7 +61,12 @@ class List {
             if (task.id === deleteOption) {
                 this.ids.push(task.id);
                 this.tasks.splice(index - 1, 1);
-                this.idCounter --;
+                let idCounterIndex = 0;
+                for (let id in this.idCounter) {
+                    if (id === deleteOption) {
+                        this.idCounter.splice(idCounterIndex, 1);
+                    }
+                }
             }
         }
         this.saveToFile();
@@ -71,8 +77,8 @@ class List {
     markAsDone() {
         this.showAll(`CHANGE TASK STATUS`);
         let markOption = parseInt(prompt(`Select task ID: `));
-        while (isNaN(markOption) || markOption < 1 || markOption > this.idCounter) {
-            markOption = parseInt(prompt(`Select options [1] to [${this.idCounter}]: `));
+        while (isNaN(markOption) || !(this.idCounter.includes(markOption))) {
+            markOption = parseInt(prompt(`Select Task ID [x]: `));
         }
 
         for (let task of this.tasks) {
