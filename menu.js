@@ -1,14 +1,23 @@
+// MENU
 const prompt = require('prompt-sync')();
+const chalk = require('chalk');
+const { format } = require('date-fns');
 
 function menu(myTasks) {
-    console.log(`Welcome to Your TODO list!`)
-    console.log(`[1] Show tasks`);
-    console.log(`[2] Add new task`);
-    console.log(`[3] Mark as done`);
-    console.log(`[4] Delete task`);
-    console.log(`[5] Exit application`);
+    console.clear();
+    let currentDate = format(new Date(), 'yyyy-MM-dd');
+    console.log(chalk.cyan.bold('╔══════════════════════════════════════╗'));
+    console.log(chalk.cyan.bold('║') + chalk.yellow.bold('     PlanIt - Your TODO List App      ') + chalk.cyan.bold('║'));
+    console.log(chalk.cyan.bold('║') + `        Today is ${chalk.green.bold(currentDate)}           ` + chalk.cyan.bold('║'));
+    console.log(chalk.cyan.bold('╚══════════════════════════════════════╝'));
+    console.log(chalk.blue.bold('[1]') + ' Show tasks');
+    console.log(chalk.blue.bold('[2]') + ' Add new task');
+    console.log(chalk.blue.bold('[3]') + ' Change Status');
+    console.log(chalk.blue.bold('[4]') + ' Delete task');
+    console.log(chalk.red.bold('[5]') + ' Exit application');
+    console.log();
     const numberOfOptions = 5;
-    let option = parseInt(prompt(`Select: `));
+    let option = parseInt(prompt(chalk.magenta.bold(`Select: `)));
     while (isNaN(option) || option < 1 || option > numberOfOptions) {
         option = parseInt(prompt(`Select options [1] to [${numberOfOptions}]: `));
     }
