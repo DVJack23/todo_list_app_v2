@@ -3,6 +3,7 @@ const prompt = require('prompt-sync')();
 const Task = require('./task.js');
 const { compareAsc, isValid, parseISO } = require('date-fns');
 const Table = require('cli-table3');
+const chalk = require("chalk");
 
 class List {
     constructor(tasks = [],ids = [], idCounter = [], highestId = 1) {
@@ -11,11 +12,16 @@ class List {
         this.idCounter = idCounter;  // List of ids in use
         this.highestId = highestId;
         this.filter = 0;
+        this.terminalHeight = process.stdout.rows;
     }
 
     // ADD NEW TASK
     addTask() {
-        console.log(`ADD NEW TASK`);
+        console.clear();
+        for(let i = 0; i < this.terminalHeight; i++) {
+            console.log();
+        }
+        console.log(`                                     `+ chalk.yellow.bold(`ADD NEW TASK`));
         let id;
         if (this.ids.length === 0) {
             id = this.highestId;
@@ -26,17 +32,17 @@ class List {
         }
         this.idCounter.push(id);
 
-        let title = prompt(`Title: `);
+        let title = prompt(chalk.red.bold(`Title: `));
         let dueDate;
         while(true) {
-            dueDate = prompt(`Due Date (YYYY-MM-DD): `);
+            dueDate = prompt(chalk.red.bold(`Due Date (YYYY-MM-DD): `));
             if (isValid(parseISO(dueDate))) {
                 break;
             } else {
-                console.log(`Invalid date format - use (YYYY-MM-DD).`);
+                console.log(chalk.red.bold(`Invalid date format - use (YYYY-MM-DD).`));
             }
         }
-        let description = prompt(`Description: `);
+        let description = prompt(chalk.red.bold(`Description: `));
         let completed = false;
 
         let newTask = new Task(id, title, dueDate, description, completed);
@@ -47,10 +53,12 @@ class List {
 
     // DELETE TASK
     deleteTask() {
-        this.showAll(`DELETE TASK`);
-        let deleteOption = parseInt(prompt(`Select task ID: `));
+        console.clear();
+        this.showAll(chalk.yellow.bold(`DELETE TASK`));
+        console.log();
+        let deleteOption = parseInt(prompt(chalk.magenta.bold(`Select task ID: `)));
         while (isNaN(deleteOption) || !(this.idCounter.includes(deleteOption))) {
-            deleteOption = parseInt(prompt(`Select Task ID [x]: `));
+            deleteOption = parseInt(prompt(chalk.magenta.bold(`Select Task ID [x]: `)));
         }
 
         let index = 1
@@ -75,10 +83,12 @@ class List {
 
     // CHANGE TASK STATUS
     markAsDone() {
-        this.showAll(`CHANGE TASK STATUS`);
-        let markOption = parseInt(prompt(`Select task ID: `));
+        console.clear();
+        this.showAll(chalk.yellow.bold(`CHANGE TASK STATUS`));
+        console.log();
+        let markOption = parseInt(prompt(chalk.magenta.bold(`Select task ID: `)));
         while (isNaN(markOption) || !(this.idCounter.includes(markOption))) {
-            markOption = parseInt(prompt(`Select Task ID [x]: `));
+            markOption = parseInt(prompt(chalk.magenta.bold(`Select Task ID [x]: `)));
         }
 
         for (let task of this.tasks) {
@@ -92,12 +102,13 @@ class List {
 
     // SHOW TASKS
     showTasks() {
+        console.clear();
         if (this.filter === 1) {
             this.showIncomplete()
         } else if (this.filter === 2) {
             this.showCompleted()
         } else {
-            this.showAll(`ALL TASKS`)
+            this.showAll(chalk.yellow.bold(`ALL TASKS`))
         }
         let option = this.showOptions();
         if (option === 2) {
@@ -115,7 +126,6 @@ class List {
         } else if (option === 4) {
             this.sortByDueDate()
             this.showTasks();
-            // TODO - Order by Due Date
         } else {
             this.sortById()
             console.log();
@@ -182,7 +192,7 @@ class List {
         }
         const tableWidth = table.options.colWidths.reduce((sum, width) => sum + width, 0) +
             (table.options.colWidths.length - 1) * 3;
-        const header = 'YOUR COMPLETED TASKS';
+        const header = chalk.yellow.bold('YOUR COMPLETED TASKS');
         const padding = Math.max(0, Math.floor((tableWidth - header.length) / 2));
         console.log(' '.repeat(padding) + header);
         console.log(table.toString());
@@ -207,21 +217,22 @@ class List {
         }
         const tableWidth = table.options.colWidths.reduce((sum, width) => sum + width, 0) +
             (table.options.colWidths.length - 1) * 3;
-        const header = 'YOUR INCOMPLETE TASKS';
+        const header = chalk.yellow.bold('YOUR INCOMPLETE TASKS');
         const padding = Math.max(0, Math.floor((tableWidth - header.length) / 2));
         console.log(' '.repeat(padding) + header);
         console.log(table.toString());
     }
 
     showOptions() {
-        console.log(`[1] - Filter complete/incomplete`)
-        console.log(`[2] - order by Title`);
-        console.log(`[3] - Order by ID`)
-        console.log(`[4] - Order by Due Date`);
-        console.log(`[5] - Back to menu`)
-        let option = parseInt(prompt(`Select option: `));
+        console.log(chalk.blue.bold('[1]') + ' Filter complete/incomplete');
+        console.log(chalk.blue.bold('[2]') + ' Order by Title');
+        console.log(chalk.blue.bold('[3]') + ' Order by ID');
+        console.log(chalk.blue.bold('[4]') + ' Order by Due Date');
+        console.log(chalk.red.bold('[5]') + ' Back to menu');
+        console.log();
+        let option = parseInt(prompt(chalk.magenta.bold(`Select option: `)));
         while (isNaN(option) || option < 1 || option > 5) {
-            option = prompt(`Select option [1] to [5]: `);
+            option = prompt(chalk.magenta.bold(`Select option [1] to [5]: `));
         }
         return option;
     }
