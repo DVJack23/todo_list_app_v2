@@ -1,6 +1,7 @@
 const fs = require('fs');
 const prompt = require('prompt-sync')();
 const Task = require('./task.js');
+const { format, compareAsc, isValid, parseISO } = require('date-fns');
 
 class List {
     constructor(tasks = [],ids = [], idCounter = 0, highestId = 1) {
@@ -24,10 +25,19 @@ class List {
         }
         this.idCounter ++;
         let title = prompt(`Title: `);
+        let dueDate;
+        while(true) {
+            dueDate = prompt(`Due Date (YYYY-MM-DD): `);
+            if (isValid(parseISO(dueDate))) {
+                break;
+            } else {
+                console.log(`Invalid date format - use (YYYY-MM-DD).`);
+            }
+        }
         let description = prompt(`Description: `);
         let completed = false;
 
-        let newTask = new Task(id, title, description, completed);
+        let newTask = new Task(id, title, dueDate, description, completed);
         this.tasks.push(newTask);
         this.saveToFile();
         console.log();
@@ -38,6 +48,8 @@ class List {
         console.log(`DELETE TASK`);
         for (let task of this.tasks) {
             console.log(`ID: [${task.id}] Title: ${task.title}`);
+            console.log(`Due Date: ${task.dueDate} Completed: ${task.completed}`);
+
         }
 
         let deleteOption = parseInt(prompt(`Select task ID: `));
@@ -62,9 +74,10 @@ class List {
 
     // CHANGE TASK STATUS
     markAsDone() {
-        console.log(`MARK AS DONE`);
+        console.log(`CHANGE TASK STATUS`);
         for (let task of this.tasks) {
             console.log(`ID: [${task.id}] Title: ${task.title}`);
+            console.log(`Due Date: ${task.dueDate} Completed: ${task.completed}`);
         }
 
         let markOption = parseInt(prompt(`Select task ID: `));
@@ -74,7 +87,7 @@ class List {
 
         for (let task of this.tasks) {
             if (task.id === markOption) {
-                task.completed = true;
+                task.completed = task.completed === false;
             }
         }
         this.saveToFile();
@@ -103,6 +116,10 @@ class List {
                 this.filter = 0;
             }
             this.showTasks();
+        } else if (option === 4) {
+            this.sortByDueDate()
+            this.showTasks();
+            // TODO - Order by Due Date
         } else {
             this.sortById()
             console.log();
@@ -117,10 +134,20 @@ class List {
         this.tasks.sort((a, b) => a.title.localeCompare(b.title));
     }
 
+    sortByDueDate() {
+        this.tasks.sort((a, b) => {
+            const dateA = parseISO(a.dueDate);
+            const dateB = parseISO(b.dueDate);
+
+            return compareAsc(dateA, dateB);
+        });
+    }
+
     showAll() {
         console.log(`ALL TASKS`);
         for (let task of this.tasks) {
             console.log(`\nID: ${task.id} Title: ${task.title}`);
+            console.log(`Due Date: ${task.dueDate}`);
             console.log(`Description: ${task.description}`);
             console.log(`Completed: ${task.completed}`);
         }
@@ -131,6 +158,7 @@ class List {
         for (let task of this.tasks) {
             if (task.completed === true) {
                 console.log(`\nID: ${task.id} Title: ${task.title}`);
+                console.log(`Due Date: ${task.dueDate}`);
                 console.log(`Description: ${task.description}`);
                 console.log(`Completed: ${task.completed}`);
             }
@@ -142,6 +170,7 @@ class List {
         for (let task of this.tasks) {
             if (task.completed === false) {
                 console.log(`\nID: ${task.id} Title: ${task.title}`);
+                console.log(`Due Date: ${task.dueDate}`);
                 console.log(`Description: ${task.description}`);
                 console.log(`Completed: ${task.completed}`);
             }
@@ -153,10 +182,11 @@ class List {
         console.log(`[1] - Filter complete/incomplete`)
         console.log(`[2] - order by Title`);
         console.log(`[3] - Order by ID`)
-        console.log(`[4] - Back to menu`)
+        console.log(`[4] - Order by Due Date`);
+        console.log(`[5] - Back to menu`)
         let option = parseInt(prompt(`Select option: `));
-        while (isNaN(option) || option < 1 || option > 4) {
-            option = prompt(`Select option [1] to [4]: `);
+        while (isNaN(option) || option < 1 || option > 5) {
+            option = prompt(`Select option [1] to [5]: `);
         }
         return option;
     }
@@ -183,7 +213,7 @@ class List {
             try {
                 const data = JSON.parse(fs.readFileSync(filename, 'utf-8'));
                 this.tasks = data.tasks.map(
-                    task => new Task(task.id, task.title, task.description, task.completed)
+                    task => new Task(task.id, task.title, task.dueDate, task.description, task.completed)
                 );
                 this.ids = data.ids || [];
                 this.idCounter = data.idCounter || 0;

@@ -1,11 +1,14 @@
 // MENU
 const prompt = require('prompt-sync')();
+const { format, isValid, parseISO } = require('date-fns');
 
 function menu(myTasks) {
-    console.log(`Welcome to Your TODO list!`)
+    let currentDate = format(new Date(), 'yyyy-MM-dd');
+    console.log(`PlanIt - Your TODO List App`)
+    console.log(`Today is ${currentDate}`);
     console.log(`[1] Show tasks`);
     console.log(`[2] Add new task`);
-    console.log(`[3] Mark as done`);
+    console.log(`[3] Change Status`);
     console.log(`[4] Delete task`);
     console.log(`[5] Exit application`);
     const numberOfOptions = 5;
