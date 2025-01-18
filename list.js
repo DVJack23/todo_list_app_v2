@@ -1,7 +1,8 @@
 const fs = require('fs');
 const prompt = require('prompt-sync')();
 const Task = require('./task.js');
-const { format, compareAsc, isValid, parseISO } = require('date-fns');
+const { compareAsc, isValid, parseISO } = require('date-fns');
+const Table = require('cli-table3');
 
 class List {
     constructor(tasks = [],ids = [], idCounter = 0, highestId = 1) {
@@ -45,13 +46,7 @@ class List {
 
     // DELETE TASK
     deleteTask() {
-        console.log(`DELETE TASK`);
-        for (let task of this.tasks) {
-            console.log(`ID: [${task.id}] Title: ${task.title}`);
-            console.log(`Due Date: ${task.dueDate} Completed: ${task.completed}`);
-
-        }
-
+        this.showAll(`DELETE TASK`);
         let deleteOption = parseInt(prompt(`Select task ID: `));
         while (isNaN(deleteOption) || deleteOption < 1 || deleteOption > this.idCounter) {
             deleteOption = parseInt(prompt(`Select options [1] to [${this.idCounter}]: `));
@@ -74,12 +69,7 @@ class List {
 
     // CHANGE TASK STATUS
     markAsDone() {
-        console.log(`CHANGE TASK STATUS`);
-        for (let task of this.tasks) {
-            console.log(`ID: [${task.id}] Title: ${task.title}`);
-            console.log(`Due Date: ${task.dueDate} Completed: ${task.completed}`);
-        }
-
+        this.showAll(`CHANGE TASK STATUS`);
         let markOption = parseInt(prompt(`Select task ID: `));
         while (isNaN(markOption) || markOption < 1 || markOption > this.idCounter) {
             markOption = parseInt(prompt(`Select options [1] to [${this.idCounter}]: `));
@@ -101,7 +91,7 @@ class List {
         } else if (this.filter === 2) {
             this.showCompleted()
         } else {
-            this.showAll()
+            this.showAll(`ALL TASKS`)
         }
         let option = this.showOptions();
         if (option === 2) {
@@ -143,42 +133,81 @@ class List {
         });
     }
 
-    showAll() {
-        console.log(`ALL TASKS`);
+    showAll(header) {
+
+        const table = new Table({
+            head: ['ID', 'Title', 'Due Date', 'Description', 'Completed'],
+            colWidths: [5, 15, 13, 40, 15],
+        });
+
         for (let task of this.tasks) {
-            console.log(`\nID: ${task.id} Title: ${task.title}`);
-            console.log(`Due Date: ${task.dueDate}`);
-            console.log(`Description: ${task.description}`);
-            console.log(`Completed: ${task.completed}`);
+            table.push([
+                task.id,
+                task.title,
+                task.dueDate,
+                task.description,
+                task.completed ? 'Yes' : 'No',
+            ]);
         }
+
+        const tableWidth = table.options.colWidths.reduce((sum, width) => sum + width, 0) +
+            (table.options.colWidths.length - 1) * 3;
+        const padding = Math.max(0, Math.floor((tableWidth - header.length) / 2));
+        console.log(' '.repeat(padding) + header);
+        console.log(table.toString());
     }
 
     showCompleted() {
-        console.log(`YOUR COMPLETED TASKS`);
+        const table = new Table({
+            head: ['ID', 'Title', 'Due Date', 'Description', 'Completed'],
+            colWidths: [5, 15, 13, 40, 15],
+        });
+
         for (let task of this.tasks) {
             if (task.completed === true) {
-                console.log(`\nID: ${task.id} Title: ${task.title}`);
-                console.log(`Due Date: ${task.dueDate}`);
-                console.log(`Description: ${task.description}`);
-                console.log(`Completed: ${task.completed}`);
+                table.push([
+                    task.id,
+                    task.title,
+                    task.dueDate,
+                    task.description,
+                    task.completed ? 'Yes' : 'No',
+                ]);
             }
         }
+        const tableWidth = table.options.colWidths.reduce((sum, width) => sum + width, 0) +
+            (table.options.colWidths.length - 1) * 3;
+        const header = 'YOUR COMPLETED TASKS';
+        const padding = Math.max(0, Math.floor((tableWidth - header.length) / 2));
+        console.log(' '.repeat(padding) + header);
+        console.log(table.toString());
     }
 
     showIncomplete() {
-        console.log(`YOUR INCOMPLETE TASKS`);
+        const table = new Table({
+            head: ['ID', 'Title', 'Due Date', 'Description', 'Completed'],
+            colWidths: [5, 15, 13, 40, 15],
+        });
+
         for (let task of this.tasks) {
             if (task.completed === false) {
-                console.log(`\nID: ${task.id} Title: ${task.title}`);
-                console.log(`Due Date: ${task.dueDate}`);
-                console.log(`Description: ${task.description}`);
-                console.log(`Completed: ${task.completed}`);
+                table.push([
+                    task.id,
+                    task.title,
+                    task.dueDate,
+                    task.description,
+                    task.completed ? 'Yes' : 'No',
+                ]);
             }
         }
+        const tableWidth = table.options.colWidths.reduce((sum, width) => sum + width, 0) +
+            (table.options.colWidths.length - 1) * 3;
+        const header = 'YOUR INCOMPLETE TASKS';
+        const padding = Math.max(0, Math.floor((tableWidth - header.length) / 2));
+        console.log(' '.repeat(padding) + header);
+        console.log(table.toString());
     }
 
     showOptions() {
-        console.log(`-------------------------------------`);
         console.log(`[1] - Filter complete/incomplete`)
         console.log(`[2] - order by Title`);
         console.log(`[3] - Order by ID`)
